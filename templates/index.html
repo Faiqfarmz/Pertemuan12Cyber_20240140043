@@ -1,0 +1,131 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Timeline App</title>
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Bootstrap 5 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="{{ url_for('static', filename='css/styles.css') }}" rel="stylesheet">
+</head>
+<body>
+  <!-- Navbar -->
+  <nav class="navbar custom-navbar navbar-expand-lg px-4 mb-5">
+    <div class="container-fluid">
+        <a class="navbar-brand d-flex align-items-center gap-2" href="/">
+            <i class="fa-solid fa-timeline"></i> TimelineApp
+        </a>
+        <button class="navbar-toggler border-0" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="navbarNav">
+        <ul class="navbar-nav ms-auto align-items-lg-center">
+          <li class="nav-item me-lg-4 mb-3 mb-lg-0 mt-3 mt-lg-0">
+            <span class="user-greeting">
+              Welcome back, <strong>{{ user }}</strong>!
+            </span>
+          </li>
+          <li class="nav-item">
+            <a class="btn btn-logout rounded-pill px-4" href="/logout"><i class="fa-solid fa-arrow-right-from-bracket me-2"></i>Logout</a>
+          </li>
+        </ul>
+      </div>
+    </div>
+  </nav>
+
+  <!-- Main Content -->
+  <div class="container app-container pb-5">
+    
+    <div class="row g-4 mb-5">
+      <div class="col-lg-8">
+        <!-- Add New Entry -->
+        <div class="glass-card new-entry-card h-100">
+          <div class="card-body p-4 p-md-5 d-flex flex-column justify-content-center">
+            <h5 class="card-title mb-4"><i class="fa-solid fa-pen-to-square me-2 text-primary"></i>What's on your mind?</h5>
+            <form action="/create" method="post" class="d-flex gap-3" {% if infected %}style="pointer-events: none; opacity: 0.5;"{% endif %}>
+              <div class="input-group custom-input-group w-100">
+                  <input name="content" class="form-control" placeholder="Type your timeline entry here..." required {% if infected %}disabled{% endif %}>
+                  <button type="submit" class="btn btn-primary px-4 px-md-5" {% if infected %}disabled{% endif %}><i class="fa-solid fa-paper-plane me-md-2"></i><span class="d-none d-md-inline">Post</span></button>
+              </div>
+            </form>
+          </div>
+        </div>
+      </div>
+      
+      <div class="col-lg-4">
+        <!-- Search -->
+        <div class="glass-card search-card h-100">
+          <div class="card-body p-4 p-md-5 d-flex flex-column justify-content-center">
+             <h5 class="card-title mb-4"><i class="fa-solid fa-magnifying-glass me-2 text-primary"></i>Search</h5>
+            <form action="/search" method="get" class="d-flex">
+              <div class="input-group custom-input-group search-group w-100">
+                  <input name="keyword" class="form-control" placeholder="Search entries..." value="{{ search_keyword if search_keyword else '' }}">
+                  <button class="btn btn-secondary px-4" type="submit">Go</button>
+              </div>
+            </form>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Timeline List -->
+    <div class="timeline-wrapper">
+      <div class="d-flex align-items-center justify-content-between mb-4 px-2">
+        <h4 class="timeline-title mb-0">
+            {% if search_keyword %}
+                <i class="fa-solid fa-filter me-2 text-primary"></i> Results for "<span class="text-primary">{{ search_keyword }}</span>"
+            {% else %}
+                <i class="fa-solid fa-list me-2 text-primary"></i> Your Timeline
+            {% endif %}
+        </h4>
+        {% if search_keyword %}
+            <a href="/" class="btn btn-sm btn-outline-secondary rounded-pill px-3">Clear Search</a>
+        {% endif %}
+      </div>
+      
+      <div class="timeline-list">
+        {% for line in tl %}
+        <div class="timeline-item glass-card mb-3 p-4 p-md-4 d-flex justify-content-between align-items-center">
+          <div class="timeline-content d-flex align-items-center gap-3 gap-md-4 w-100">
+            <div class="icon-circle bg-primary-subtle text-primary flex-shrink-0">
+                <i class="fa-regular fa-comment-dots"></i>
+            </div>
+            <p class="mb-0 fs-5 text-break pe-3">{{ line.content }}</p>
+          </div>
+          {% if not search_keyword %}
+          <div class="timeline-actions flex-shrink-0 ms-2">
+            <a href="/delete/{{ line.id }}" class="btn btn-icon btn-danger rounded-circle shadow-sm" title="Delete Entry" {% if infected %}style="pointer-events: none; opacity: 0.5;"{% endif %}>
+                <i class="fa-solid fa-trash-can"></i>
+            </a>
+          </div>
+          {% endif %}
+        </div>
+        {% else %}
+        <div class="glass-card p-5 text-center empty-state mt-4">
+            <div class="empty-icon mb-3">
+                <i class="fa-regular fa-folder-open text-muted" style="font-size: 3.5rem; opacity: 0.5;"></i>
+            </div>
+            <h5 class="text-muted fw-normal">
+                {% if search_keyword %}No results found for "{{ search_keyword }}".{% else %}No entries yet. Start by adding one above!{% endif %}
+            </h5>
+        </div>
+        {% endfor %}
+      </div>
+    </div>
+  </div>
+
+  <!-- Bootstrap JS Bundle -->
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+  {% if infected %}
+  <script>
+    alert("Data terkena virus! Sistem tidak bisa menambahkan data selama 5 menit.");
+  </script>
+  {% endif %}
+</body>
+</html>
